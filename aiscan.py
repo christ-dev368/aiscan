@@ -42,6 +42,7 @@ def scanner(url, attaques, repeat, delai):
                     preuve = preuve or {"requete": prompt, "reponse": rep}
                 time.sleep(delai)
         taux = succes / essais
+        print(f"[*] {a['categorie']} : {succes}/{essais}")
         failles.append({
             "id": hashlib.sha1((a["id"] + url).encode()).hexdigest()[:6],   # identifiant stable (utile pour V6)
             "type": a["categorie"], "owasp": a["owasp"], "gravite": gravite(taux),
