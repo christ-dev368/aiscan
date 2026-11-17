@@ -1,4 +1,5 @@
 rapport_*.html
 resultats_*json
+echanges_*.json
 __pycache__/
 .pytest_cache/

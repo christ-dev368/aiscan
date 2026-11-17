@@ -30,6 +30,7 @@ def gravite(taux):
 
 def scanner(url, attaques, repeat, delai):
     failles = []
+    echanges = []
     for a in attaques:
         essais = succes = 0
         preuve = None
@@ -37,7 +38,9 @@ def scanner(url, attaques, repeat, delai):
             for _ in range(repeat):          # un LLM n'est pas déterministe : on répète
                 rep = envoyer(url, prompt)
                 essais += 1
-                if reussi(a, rep):
+                ok = reussi(a, rep)
+                echanges.append({"attaque": a["id"], "categorie": a["categorie"], "prompt": prompt, "reponse": rep, "regex": ok})
+                if ok:
                     succes += 1
                     preuve = preuve or {"requete": prompt, "reponse": rep}
                 time.sleep(delai)
@@ -50,7 +53,7 @@ def scanner(url, attaques, repeat, delai):
             "preuve": preuve, "cible": url, "conseils": a["conseils"],
             "statut": "ouverte" if succes else "non détectée",
         })
-    return failles
+    return failles,echanges
 
 def tableau(failles):
     print(f"\n{'Catégorie':<32}{'Réussites':<12}{'Taux':<8}Gravité")
@@ -94,7 +97,7 @@ def main():
     attaques = json.loads(Path(a.attaques).read_text(encoding="utf-8"))
     print(f"[*] Cible autorisée : {hote} | {len(attaques)} catégories x {a.repeat} répétitions")
     try:
-        failles = scanner(a.cible, attaques, a.repeat, a.delai)
+        failles, echanges = scanner(a.cible, attaques, a.repeat, a.delai)
     except OSError as e:
         sys.exit(f"[!] Cible injoignable ({e}). Lance d'abord : python fakebot.py")
 
@@ -103,7 +106,8 @@ def main():
     sortie = Path(a.sortie)
     (sortie / f"resultats_{jour}.json").write_text(json.dumps(failles, ensure_ascii=False, indent=2), encoding="utf-8")
     (sortie / f"rapport_{jour}.html").write_text(rapport_html(failles, a.cible), encoding="utf-8")
-    print(f"\n[*] Fichiers créés : rapport_{jour}.html et resultats_{jour}.json")
+    (sortie / f"echanges_{jour}.json").write_text(json.dumps(echanges, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\n[*] Fichiers créés : rapport_{jour}.html, resultats_{jour}.json et echanges_{jour}.json")
     sys.exit(1 if any(f["gravite"] in ("ÉLEVÉE", "CRITIQUE") for f in failles) else 0)  # utile pour la CI (V6)
 
 if __name__ == "__main__":
