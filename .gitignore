@@ -1,2 +1,4 @@
 rapport_*.html
-resultats_*.json
+resultats_*json
+__pycache__/
+.pytest_cache/
