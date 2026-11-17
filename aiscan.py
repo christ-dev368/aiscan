@@ -14,7 +14,7 @@ AUTORISES = {"localhost", "127.0.0.1"}   # liste blanche : le périmètre est im
 def envoyer(url, message):
     req = urllib.request.Request(url, data=json.dumps({"message": message}).encode(),
                                  headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=10) as r:
+    with urllib.request.urlopen(req, timeout=120) as r:
         return json.loads(r.read())["reply"]
 
 def reussi(attaque, reponse):
